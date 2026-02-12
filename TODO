@@ -1,0 +1,2 @@
+changer le cache engine (redis/valkey)
+injecter la passphrase (Kubernetes Secrets Store CSI Driver)
