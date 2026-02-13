@@ -2,7 +2,7 @@ import { mkdir, rm, readdir } from 'fs/promises';
 import * as atom from 'atomically';
 import * as path from 'path';
 import * as crypto from 'node:crypto';
-import { KEYS_DIR, PUBLIC_KEY_REGEX, PRIVATE_KEY_REGEX } from '../common/constant';
+import { KEYS_DIR, PUBLIC_KEY_REGEX, PRIVATE_KEY_REGEX, KEY_REGEX } from '../common/constant';
 import { sortKeyFilesAsc, unwrap } from '../common/utils';
 import { until } from 'until-async';
 import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
@@ -174,6 +174,24 @@ export class KeyService {
       this.logger.error('[keyService::revokeOldKeys::1::rm.key]', rejected);
       throw new InternalServerErrorException();
     }
+  }
+
+  // ------------------------------------------------------------------ //
+
+  async isKeyDirEmpty() {
+    unwrap(
+      await until(() => mkdir(KEYS_DIR, { recursive: true })),
+      this.logger, '[keyService::isKeyDirEmpty::0::mkdir.keydir]',
+    );
+
+    const files = unwrap(
+      await until(() => readdir(KEYS_DIR)),
+      this.logger, '[keyService::isKeyDirEmpty::1::readdir.keydir]',
+    );
+
+    const keyFiles = files.filter(file => KEY_REGEX.test(file));
+
+    return keyFiles.length === 0;
   }
 
   // ------------------------------------------------------------------ //
