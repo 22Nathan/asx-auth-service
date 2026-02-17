@@ -5,12 +5,31 @@ export function unwrap<T>(
   [error, result]: UntilResult<Error, T>,
   logger: Logger,
   context: string,
+  allowNullish?: false,
+  exception?: new (...args: any[]) => Error
+): NonNullable<T>;
+
+export function unwrap<T>(
+  [error, result]: UntilResult<Error, T>,
+  logger: Logger,
+  context: string,
+  allowNullish: true,
+  exception?: new (...args: any[]) => Error
+): T | null | undefined;
+
+export function unwrap<T>(
+  [error, result]: UntilResult<Error, T>,
+  logger: Logger,
+  context: string,
+  allowNullish: boolean = false,
   exception: new (...args: any[]) => Error = InternalServerErrorException,
 ) {
   if (error) {
     logger.error(context, error);
     throw new exception();
   }
+  const empty = result === undefined || result === null || (Array.isArray(result) && result.length === 0);
+  if (!allowNullish && empty) throw new exception();
   return result;
 }
 

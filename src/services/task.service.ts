@@ -13,11 +13,20 @@ export class TaskService implements OnModuleInit {
     private readonly keyService: KeyService,
   ) {}
 
+  // ------------------------------------------------------------------ //
+
   async onModuleInit() {
-    const isKeyDirEmpty = await this.keyService.isKeyDirEmpty();
+    const [error, isKeyDirEmpty] = await until(() => this.keyService.isKeyDirEmpty());
+    if (error) {
+      this.logger.error('[task::onModuleInit::isKeyDirEmpty]', error);
+      return;
+    }
+
     if (isKeyDirEmpty) await this.generateKeys();
     await this.revokeOldKeys();
   }
+
+  // ------------------------------------------------------------------ //
 
   @Cron(CronExpression.EVERY_DAY_AT_10AM ,{ 
     name: 'key-generation',
@@ -41,6 +50,8 @@ export class TaskService implements OnModuleInit {
     this.logger.log('[task::generateKeys] Key generation completed');
   }
 
+  // ------------------------------------------------------------------ //
+
   @Cron(CronExpression.EVERY_DAY_AT_NOON, {
     name: 'revoke-old-keys',
     timeZone: 'Europe/Paris',
@@ -62,4 +73,6 @@ export class TaskService implements OnModuleInit {
 
     this.logger.log('[task::revokeOldKeys] Old keys revocation completed');
   }
+
+  // ------------------------------------------------------------------ //
 }

@@ -19,7 +19,7 @@ export class KeyService {
   async generateKeyPair() {
     unwrap(
       await until(() => mkdir(KEYS_DIR, { recursive: true })),
-      this.logger, '[keyService::generateKeyPair::0::mkdir.keydir]',
+      this.logger, '[keyService::generateKeyPair::0::mkdir.keydir]', true
     );
 
     const dateNow = dayjs().valueOf(); 
@@ -45,7 +45,7 @@ export class KeyService {
 
     unwrap(
       await until(() => atom.writeFile(privateKeyPath, privateKey, { mode: 0o600 })),
-      this.logger, '[keyService::generateKeyPair::1::atom.writeFile.privatekey]',
+      this.logger, '[keyService::generateKeyPair::1::atom.writeFile.privatekey]', true
     );
 
     const [errorWritePublicKey] = await until(() => atom.writeFile(publicKeyPath, publicKey, { mode: 0o644 }));
@@ -181,15 +181,15 @@ export class KeyService {
   async isKeyDirEmpty() {
     unwrap(
       await until(() => mkdir(KEYS_DIR, { recursive: true })),
-      this.logger, '[keyService::isKeyDirEmpty::0::mkdir.keydir]',
+      this.logger, '[keyService::isKeyDirEmpty::0::mkdir.keydir]', true
     );
 
     const files = unwrap(
       await until(() => readdir(KEYS_DIR)),
-      this.logger, '[keyService::isKeyDirEmpty::1::readdir.keydir]',
+      this.logger, '[keyService::isKeyDirEmpty::1::readdir.keydir]', true
     );
 
-    const keyFiles = files.filter(file => KEY_REGEX.test(file));
+    const keyFiles = (files || []).filter(file => KEY_REGEX.test(file));
 
     return keyFiles.length === 0;
   }
